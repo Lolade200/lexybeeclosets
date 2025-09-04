@@ -10,10 +10,11 @@ if (!isset($_SESSION['user_id']) || strtolower($_SESSION['role']) !== 'admin') {
 }
 
 // 📊 Connect to database
-$connection = new mysqli("localhost", "root", "", "bbbb");
-if ($connection->connect_error) {
-    die("Connection failed: " . $connection->connect_error);
-}
+//$connection = new mysqli("localhost", "root", "", "bbbb");
+//if ($connection->connect_error) {
+  //  die("Connection failed: " . $connection->connect_error);
+//}
+require_once 'database.php';
 
 // 🧮 Initialize variables
 $userCount       = 0;

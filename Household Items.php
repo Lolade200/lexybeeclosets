@@ -1,12 +1,13 @@
-<?php
+<?php 
 // Database connection
-$servername = "localhost";
-$username   = "root";
-$password   = "";
-$dbname     = "bbbb";
+//$servername = "localhost";
+//$username   = "root";
+//$password   = "";
+//$dbname     = "bbbb";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+//$conn = new mysqli($servername, $username, $password, $dbname);
+//if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
+require_once 'database.php';
 
 // Pagination setup
 $limit  = 6;

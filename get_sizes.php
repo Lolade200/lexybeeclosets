@@ -1,5 +1,5 @@
 <?php
-require 'db.php'; // or your connection logic
+require_once 'database.php'; // or your connection logic
 
 $product_id = intval($_GET['product_id']);
 $color = $_GET['color'];

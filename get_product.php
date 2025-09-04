@@ -1,14 +1,14 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "bb";
+//$servername = "localhost";
+//$username = "root";
+//$password = "";
+//$dbname = "bb";
 
-$conn = new mysqli($servername, $username, "", $dbname);
-if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
-}
-
+//$conn = new mysqli($servername, $username, "", $dbname);
+//if ($conn->connect_error) {
+  //die("Connection failed: " . $conn->connect_error);
+//}
+require_once 'database.php';
 $searchTerm = isset($_POST['search']) ? trim(strtolower($_POST['search'])) : '';
 
 // Unified query
