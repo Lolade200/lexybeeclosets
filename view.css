@@ -1,0 +1,541 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+:root {
+  --primary: #f0c040;
+  --bg: #f5f7fa;
+  --text: #333;
+  --header-bg: #1e2a38;
+  --footer-bg: #222;
+  --font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  transition: all 0.3s ease;
+}
+
+a {
+  text-decoration: none;
+  color: white;
+}
+
+/* Header */
+header {
+  width: 100%;
+  background: var(--header-bg);
+  color: white;
+  padding: 20px 30px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo img {
+  width: 40px;
+  height: 40px;
+}
+
+.search-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 600px;
+  margin: 10px auto;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 16px 18px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+}
+
+.search-bar button {
+  padding: 16px 20px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.search-bar button i {
+  font-size: 18px;
+  color: white;
+}
+
+/* Hamburger Menu */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.nav-links {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+
+.nav-links a {
+  color: white;
+  font-weight: 500;
+}
+
+.nav-links.show {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 70px;
+  right: 30px;
+  background: var(--header-bg);
+  padding: 20px;
+  border-radius: 8px;
+  z-index: 1000;
+}
+
+/* ===================== SLIDER ===================== */
+.slider {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px;
+  gap: 30px;
+  background: #fdfdfd;
+}
+
+.slider-left {
+  flex: 1;
+}
+
+.slider-left h2 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.slider-left p {
+  font-size: 1rem;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.shop-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #f0c040;
+  color: #333;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.slider-right {
+  flex: 2;
+  overflow: hidden;
+}
+
+.slider-wrapper {
+  width: 100%;
+  overflow: hidden;
+}
+
+.slider-container {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.slide {
+  flex: 0 0 100%; /* 👈 only one slide visible at a time */
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.slide img {
+  width: 100%;
+  height: 350px; /* 👈 increased height */
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+
+/* ===================== MAIN LAYOUT ===================== */
+.main-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px;
+}
+
+.main-flex {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+/* Sidebar */
+.categories {
+  flex: 0 0 250px;
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  height: 650px;
+  overflow-y: auto;
+}
+
+.categories summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.categories ul {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 10px;
+  border-top: 1px solid #ddd;
+}
+
+.categories li {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  transition: background 0.3s;
+}
+
+.categories a {
+  color: var(--text);
+  font-weight: 500;
+  display: block;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+.categories a:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Products Section */
+.products {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content:flex-start;
+}
+
+.product-card {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  width: 270px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 360px;
+}
+
+.product-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.product-card h4 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.product-card p {
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+.product-card .price {
+  font-weight: bold;
+  color:black;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.actions button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.3s ease;
+  width: 100%;
+  max-width: 200px;
+  justify-content: center;
+}
+
+.actions button:hover {
+  background: #d9a82d;
+}
+
+.actions button i {
+  font-size: 18px;
+}
+
+.actions button:hover i {
+  animation: bounce 0.5s;
+  color: white;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* ✅ Fixed Pagination */
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 40px auto;
+  width: fit-content;
+ 
+  padding: 15px 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.pagination {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pagination a {
+  padding: 10px 16px;
+  background-color: var(--primary);
+  color: white;
+  font-weight: 600;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pagination a:hover {
+  background-color: #d9a82d;
+  transform: translateY(-2px);
+}
+
+.pagination a.active-page,
+.pagination a[style*="font-weight:bold"] {
+  background-color: #1e2a38;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Footer */
+footer {
+  background: var(--footer-bg);
+  color: #eee;
+  padding: 40px 30px;
+  font-size: 14px;
+}
+
+footer h4 {
+  color: var(--primary);
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+}
+
+.footer-note {
+  margin-top: 20px;
+  font-style: italic;
+  color: #ccc;
+}
+
+.footer-bottom {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+footer i {
+  margin-right: 8px;
+  color: var(--primary);
+}
+
+.footer-grid ul li {
+  margin-bottom: 10px;
+}
+
+.footer-grid a {
+  color: var(--primary);
+}
+
+.footer-grid a:hover {
+  text-decoration: underline;
+}
+
+/* Cart */
+.cart-icon-wrapper {
+  position: relative;
+}
+
+.cart-dot {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  background: red;
+  border-radius: 50%;
+  display: none;
+}
+/* Responsive */
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .nav-links.show {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: var(--header-bg);
+    padding: 15px;
+    border-radius: 8px;
+    position: absolute;
+    top: 70px;
+    right: 20px;
+    z-index: 1000;
+  }
+
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .search-bar {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .search-bar input,
+  .search-bar button {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .main-wrapper {
+    padding: 20px;
+  }
+
+  .main-flex {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .categories {
+    width: 100%;
+    height: auto;
+    padding: 15px;
+  }
+
+  .products {
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .product-card {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  /* ===================== SLIDER RESPONSIVENESS ===================== */
+  .slider {
+    flex-direction: column;
+    padding: 20px;
+    gap: 15px;
+  }
+
+  .slider-left,
+  .slider-right {
+    flex: 1 1 100%;
+  }
+
+  .slide img {
+    height: 300px; /* smaller height for tablets/mobiles */
+  }
+
+  .slider-left h2 {
+    font-size: 1.5rem;
+  }
+
+  .slider-left p {
+    font-size: 0.9rem;
+  }
+
+  .shop-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  /* Responsive Pagination */
+  .pagination-wrapper {
+    width: 100%;
+    justify-content: center;
+    padding: 15px;
+  }
+
+  .pagination {
+    gap: 8px;
+  }
+}
