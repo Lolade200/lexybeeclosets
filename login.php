@@ -2,13 +2,18 @@
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+require_once 'database.php';
+
+
+$connection = $conn;
 
 // 📊 DB connection
-$connection = new mysqli("localhost", "root", "", "bbbb");
-if ($connection->connect_error) {
-    die("Connection failed: " . $connection->connect_error);
-}
+// $connection = new mysqli("localhost", "root", "", "bbbb");
+// if ($connection->connect_error) {
+//     die("Connection failed: " . $connection->connect_error);
+// }
 $connection->set_charset('utf8mb4');
+
 
 $login_error = '';
 
