@@ -1,17 +1,26 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+require_once 'database.php';
+
+// Use the global connection
+//global $conn;
+//$result = $conn->query("SELECT * FROM users");
+
+// Or use the function
+// $db = getDBConnection();
+// $result = $db->query("SELECT * FROM users");
 
 // Database connection
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "bbbb";
+// $servername = "localhost";
+// $username = "root";
+// $password = "";
+// $dbname = "bbbb";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+// $conn = new mysqli($servername, $username, $password, $dbname);
+// if ($conn->connect_error) {
+//     die("Connection failed: " . $conn->connect_error);
+// }
 
 // Pagination setup
 $limit = 6; 
