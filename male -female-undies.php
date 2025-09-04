@@ -1,5 +1,5 @@
 <?php 
-require_oncene 'database.php';
+require_once 'database.php';
 // Database connection
 //$servername = "localhost";
 //$username   = "root";
