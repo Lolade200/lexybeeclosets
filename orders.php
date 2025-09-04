@@ -2,12 +2,12 @@
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
+require_once 'database.php';
 // 🛠️ Connect to database
-$connection = new mysqli("localhost", "root", "", "bbbb");
-if ($connection->connect_error) {
-    die("Connection failed: " . $connection->connect_error);
-}
+//$connection = new mysqli("localhost", "root", "", "bbbb");
+//if ($connection->connect_error) {
+  //  die("Connection failed: " . $connection->connect_error);
+//}
 
 // 👤 Get user session info
 $full_name = $_SESSION['full_name'] ?? 'Admin';

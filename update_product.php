@@ -1,8 +1,9 @@
 <?php
-$conn = new mysqli("localhost", "root", "", "bbbb");
-if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
-}
+require_once 'database.php';
+//$conn = new mysqli("localhost", "root", "", "bbbb");
+//if ($conn->connect_error) {
+//  die("Connection failed: " . $conn->connect_error);
+//}
 
 $upload_dir = "uploads";
 if (!file_exists($upload_dir)) {

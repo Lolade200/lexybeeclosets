@@ -2,11 +2,11 @@
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
-$connection = new mysqli("localhost", "root", "", "bbbb");
-if ($connection->connect_error) {
-  die("Connection failed: " . $connection->connect_error);
-}
+require_once 'database.php';
+//$connection = new mysqli("localhost", "root", "", "bbbb");
+//if ($connection->connect_error) {
+//  die("Connection failed: " . $connection->connect_error);
+//}
 
 $signup_error = '';
 $signup_success = '';
