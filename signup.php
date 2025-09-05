@@ -2,61 +2,65 @@
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-require_once 'database.php';
-//$connection = new mysqli("localhost", "root", "", "bbbb");
-//if ($connection->connect_error) {
-//  die("Connection failed: " . $connection->connect_error);
-//}
+
+// 📦 Load database connection
+require_once 'database.php'; // Adjust path if needed
+$connection = $conn;
+// ✅ Ensure connection is valid
+if (!isset($connection) || !($connection instanceof mysqli)) {
+    die("❌ Database connection failed.");
+}
 
 $signup_error = '';
 $signup_success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $full_name = trim($_POST['full_name'] ?? '');
-  $email = trim($_POST['email'] ?? '');
-  $mobile_number = trim($_POST['mobile_number'] ?? '');
-  $password = trim($_POST['password'] ?? '');
+    // 🧼 Sanitize input
+    $full_name = trim($_POST['full_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $mobile_number = trim($_POST['mobile_number'] ?? '');
+    $password = trim($_POST['password'] ?? '');
 
-  if ($full_name && $email && $mobile_number && $password) {
-    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    // ✅ Validate input
+    if ($full_name && $email && $mobile_number && $password) {
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-    // Check if full name exists
-    $nameCheck = $connection->prepare("SELECT id FROM users WHERE full_name = ?");
-    $nameCheck->bind_param("s", $full_name);
-    $nameCheck->execute();
-    $nameCheck->store_result();
+        // 🔍 Check if full name exists
+        $nameCheck = $connection->prepare("SELECT id FROM users WHERE full_name = ?");
+        $nameCheck->bind_param("s", $full_name);
+        $nameCheck->execute();
+        $nameCheck->store_result();
 
-    if ($nameCheck->num_rows > 0) {
-      $signup_error = "Full name already exists.";
-      $nameCheck->close();
-    } else {
-      $nameCheck->close();
-
-      // Check if email exists
-      $stmt = $connection->prepare("SELECT id FROM users WHERE email = ?");
-      $stmt->bind_param("s", $email);
-      $stmt->execute();
-      $stmt->store_result();
-
-      if ($stmt->num_rows > 0) {
-        $signup_error = "An account with this email already exists.";
-        $stmt->close();
-      } else {
-        $stmt->close();
-        $insert = $connection->prepare("INSERT INTO users (full_name, email, mobile_number, password) VALUES (?, ?, ?, ?)");
-        $insert->bind_param("ssss", $full_name, $email, $mobile_number, $hashed_password);
-        if ($insert->execute()) {
-          echo "<script>alert('Account created successfully'); window.location.href='login.php';</script>";
-          exit;
+        if ($nameCheck->num_rows > 0) {
+            $signup_error = "Full name already exists.";
         } else {
-          $signup_error = "Something went wrong. Please try again.";
+            // 🔍 Check if email exists
+            $emailCheck = $connection->prepare("SELECT id FROM users WHERE email = ?");
+            $emailCheck->bind_param("s", $email);
+            $emailCheck->execute();
+            $emailCheck->store_result();
+
+            if ($emailCheck->num_rows > 0) {
+                $signup_error = "An account with this email already exists.";
+            } else {
+                // 📝 Insert new user
+                $insert = $connection->prepare("INSERT INTO users (full_name, email, mobile_number, password) VALUES (?, ?, ?, ?)");
+                $insert->bind_param("ssss", $full_name, $email, $mobile_number, $hashed_password);
+
+                if ($insert->execute()) {
+                    echo "<script>alert('Account created successfully'); window.location.href='login.php';</script>";
+                    exit;
+                } else {
+                    $signup_error = "Something went wrong. Please try again.";
+                }
+                $insert->close();
+            }
+            $emailCheck->close();
         }
-        $insert->close();
-      }
+        $nameCheck->close();
+    } else {
+        $signup_error = "Please fill in all fields.";
     }
-  } else {
-    $signup_error = "Please fill in all fields.";
-  }
 }
 ?>
 
@@ -115,8 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <input type="text" name="mobile_number" placeholder="Mobile Number" required
            pattern="^\+?\d{10,15}$"
            title="Enter a valid mobile number (10-15 digits, optional + for country code)">
-    <input type="password" name="password" placeholder="Create Password" required
-           pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}"
+    <input type="password" name="password" placeholder="Create Password" 
            title="Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.">
 
     <button type="submit">Sign Up</button>

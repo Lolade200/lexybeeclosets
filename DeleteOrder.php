@@ -101,7 +101,7 @@ $connection->close();
 
 <main class="content">
   <div class="confirm-box">
-    <h2><i class="fas fa-trash-alt"></i> Delete Order</h2>
+    <h2><i class="fas fa-trash-alt"></i> Order Payed For / Delete Order</h2>
     <form method="POST">
       <input type="text" name="order_id" placeholder="Enter Order Code (e.g. LB-98182)" required />
       <button type="submit">Check Order</button>
