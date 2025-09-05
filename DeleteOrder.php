@@ -94,7 +94,7 @@ $connection->close();
   <button class="hamburger" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
   <nav>
     
-       <a href="index.php.php">Home</a>
+       <a href="index.php">Home</a>
     <span style="font-weight: bold; color: white; margin-right: 15px; font-size: 15px;">
       <?= htmlspecialchars($full_name) ?>
     </span>

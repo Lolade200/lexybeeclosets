@@ -117,101 +117,110 @@ $searchTerm = strtolower($searchTerm);
     </div>
   </section>
 
-  <!-- 🛍️ Product Grid -->
-  
-  <section class="products" id="productList">
-    <?php
-    // Product query
-    $sql = "
-      SELECT products.id, products.name, products.description, products.image,
-             MIN(product_variants.price) AS price
-      FROM products
-      LEFT JOIN product_variants ON products.id = product_variants.product_id
-      WHERE (
-          ? = '' OR
-          LOWER(products.name) LIKE CONCAT('%', ?, '%') OR
-          LOWER(products.description) LIKE CONCAT('%', ?, '%') OR
-          LOWER(products.category) LIKE CONCAT('%', ?, '%')
-      )
-      GROUP BY products.id
-      ORDER BY products.created_at DESC
-      LIMIT ? OFFSET ?
-    ";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssii", $searchTerm, $searchTerm, $searchTerm, $searchTerm, $limit, $offset);
-    $stmt->execute();
-    $result = $stmt->get_result();
+  <!-- 🛍️ Product Grid --><section class="products" id="productList">
+  <?php
+  // Product query
+  $sql = "
+    SELECT products.id, products.name, products.description, products.image,
+           MIN(product_variants.price) AS price
+    FROM products
+    LEFT JOIN product_variants ON products.id = product_variants.product_id
+    WHERE (
+        ? = '' OR
+        LOWER(products.name) LIKE CONCAT('%', ?, '%') OR
+        LOWER(products.description) LIKE CONCAT('%', ?, '%') OR
+        LOWER(products.category) LIKE CONCAT('%', ?, '%')
+    )
+    GROUP BY products.id
+    ORDER BY products.created_at DESC
+    LIMIT ? OFFSET ?
+  ";
+  $stmt = $conn->prepare($sql);
+  $stmt->bind_param("ssssii", $searchTerm, $searchTerm, $searchTerm, $searchTerm, $limit, $offset);
+  $stmt->execute();
+  $result = $stmt->get_result();
 
-    // Count total products for pagination
-    $count_sql = "
-      SELECT COUNT(DISTINCT products.id) AS total
-      FROM products
-      LEFT JOIN product_variants ON products.id = product_variants.product_id
-      WHERE (
-          ? = '' OR
-          LOWER(products.name) LIKE CONCAT('%', ?, '%') OR
-          LOWER(products.description) LIKE CONCAT('%', ?, '%') OR
-          LOWER(products.category) LIKE CONCAT('%', ?, '%')
-      )
-    ";
-    $count_stmt = $conn->prepare($count_sql);
-    $count_stmt->bind_param("ssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm);
-    $count_stmt->execute();
-    $count_result = $count_stmt->get_result();
-    $total_products = $count_result->fetch_assoc()['total'];
-    $count_stmt->close();
+  // Count total products for pagination
+  $count_sql = "
+    SELECT COUNT(DISTINCT products.id) AS total
+    FROM products
+    LEFT JOIN product_variants ON products.id = product_variants.product_id
+    WHERE (
+        ? = '' OR
+        LOWER(products.name) LIKE CONCAT('%', ?, '%') OR
+        LOWER(products.description) LIKE CONCAT('%', ?, '%') OR
+        LOWER(products.category) LIKE CONCAT('%', ?, '%')
+    )
+  ";
+  $count_stmt = $conn->prepare($count_sql);
+  $count_stmt->bind_param("ssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm);
+  $count_stmt->execute();
+  $count_result = $count_stmt->get_result();
+  $total_products = $count_result->fetch_assoc()['total'];
+  $count_stmt->close();
 
-    // ✅ Calculate total pages BEFORE using it
-    $total_pages = ($limit > 0) ? ceil($total_products / $limit) : 1;
+  $total_pages = ($limit > 0) ? ceil($total_products / $limit) : 1;
 
-    // Display products
-    if ($result && $result->num_rows > 0) {
-      while ($row = $result->fetch_assoc()) {
-        $product_id = $row['id'];
-        $image = !empty($row["image"]) ? $row["image"] : "uploads/default.jpg";
-        $name = htmlspecialchars($row["name"]);
-        $desc = htmlspecialchars($row["description"]);
-        $price = number_format($row["price"], 2);
+  // Display products
+  if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+      $product_id = $row['id'];
+      $image = !empty($row["image"]) ? $row["image"] : "uploads/default.jpg";
+      $name = htmlspecialchars($row["name"]);
+      $desc = htmlspecialchars($row["description"]);
+      $price = number_format($row["price"], 2);
 
-        // Get available colors
-        $color_sql = "SELECT DISTINCT color FROM product_variants WHERE product_id = ?";
-        $color_stmt = $conn->prepare($color_sql);
-        $color_stmt->bind_param("i", $product_id);
-        $color_stmt->execute();
-        $color_result = $color_stmt->get_result();
+      // Get available colors
+      $color_sql = "SELECT DISTINCT color FROM product_variants WHERE product_id = ?";
+      $color_stmt = $conn->prepare($color_sql);
+      $color_stmt->bind_param("i", $product_id);
+      $color_stmt->execute();
+      $color_result = $color_stmt->get_result();
 
-        $color_html = '<div class="color-options">';
-        while ($color_row = $color_result->fetch_assoc()) {
-          $color = htmlspecialchars($color_row['color']);
-          $color_html .= "<button class='color-btn' style='background-color:{$color};' data-color='{$color}' data-product='{$product_id}'></button>";
-        }
-        $color_html .= '</div>';
-        $color_stmt->close();
-
-        echo "<div class='product-card' data-id='$product_id'>
-                <img src='$image' alt='$name'>
-                <h4>$name</h4>
-                <p>$desc</p>
-                <p><strong>Colors:</strong></p>
-                $color_html
-                <div class='size-options'></div>
-                <p><strong>Selected Size:</strong> <span class='selected-size'>None</span></p>
-                <p><strong>Stock:</strong> <span class='selected-stock'>0</span></p>
-                <p><strong>Price:</strong> ₦<span class='selected-price'>$price</span></p>
-                <form method='POST' action='add_to_cart.php' onsubmit='return prepareCartData($product_id)'>
-                  <input type='hidden' name='product_id' value='$product_id'>
-                  <input type='hidden' name='selected_color' class='selected-color-input'>
-                  <input type='hidden' name='selected_size' class='selected-size-input'>
-                  <input type='number' class='quantity-input' min='1' value='1' style='width:60px;' placeholder='Qty'>
-                  <button type='submit' class='btn1'><i class='fas fa-cart-plus'></i> Add to Cart</button>
-                </form>
-              </div>";
+      $color_html = '<div class="color-options">';
+      while ($color_row = $color_result->fetch_assoc()) {
+        $color = htmlspecialchars($color_row['color']);
+        $color_html .= "<button class='color-btn' style='background-color:{$color};' data-color='{$color}' data-product='{$product_id}'></button>";
       }
-    } else {
-      echo "<p>No products found.</p>";
+      $color_html .= '</div>';
+      $color_stmt->close();
+
+      // ✅ Get total stock for the product
+      $stock_sql = "SELECT SUM(stock) AS total_stock FROM product_variants WHERE product_id = ?";
+      $stock_stmt = $conn->prepare($stock_sql);
+      $stock_stmt->bind_param("i", $product_id);
+      $stock_stmt->execute();
+      $stock_result = $stock_stmt->get_result();
+      $total_stock = $stock_result->fetch_assoc()['total_stock'] ?? 0;
+      $stock_stmt->close();
+
+      // ✅ Display actual stock number (even if it's 0)
+      $display_stock = (is_numeric($total_stock)) ? $total_stock : 0;
+
+      echo "<div class='product-card' data-id='$product_id'>
+              <img src='$image' alt='$name'>
+              <h4>$name</h4>
+              <p>$desc</p>
+              <p><strong>Colors:</strong></p>
+              $color_html
+              <div class='size-options'></div>
+              <p><strong>Selected Size:</strong> <span class='selected-size'>None</span></p>
+              <p><strong>Stock:</strong> <span class='selected-stock'>$display_stock</span></p>
+              <p><strong>Price:</strong> ₦<span class='selected-price'>$price</span></p>
+              <form method='POST' action='add_to_cart.php' onsubmit='return prepareCartData($product_id)'>
+                <input type='hidden' name='product_id' value='$product_id'>
+                <input type='hidden' name='selected_color' class='selected-color-input'>
+                <input type='hidden' name='selected_size' class='selected-size-input'>
+                <input type='number' class='quantity-input' min='1' value='1' style='width:60px;' placeholder='Qty'>
+                <button type='submit' class='btn1'><i class='fas fa-cart-plus'></i> Add to Cart</button>
+              </form>
+            </div>";
     }
-    ?>
-  </section>
+  } else {
+    echo "<p>No products found.</p>";
+  }
+  ?>
+</section>
 
   <!-- 📄 Pagination -->
   <div class="pagination-wrapper">

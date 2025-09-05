@@ -16,7 +16,11 @@
     <div>
       <h4><i class="fas fa-link"></i> Quick Links</h4>
       <ul style="list-style: none; padding-left: 0;">
-       
+        
+         <i class="fas fa-home"></i>
+  <a href="index.php" style="color: #eee; text-decoration: none;">Home</a>
+</li>
+
         <li><i class="fas fa-info-circle"></i> <a href="about.php" style="color: #eee; text-decoration: none;">About</a></li>
         <li><i class="fas fa-sign-in-alt"></i> <a href="login.php" style="color: #eee; text-decoration: none;">Login</a></li>
         <li><i class="fas fa-user-plus"></i> <a href="signup.php" style="color: #eee; text-decoration: none;">Signup</a></li>

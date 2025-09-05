@@ -2,17 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 require_once 'database.php';
-//$host = "localhost";
-//$user = "root";
-//$password = "";
-//$dbname = "bbbb";
 
-//$conn = new mysqli($host, $user, $password, $dbname);
-//if ($conn->connect_error) {
-  //die("Connection failed: " . $conn->connect_error);
-//}
-
-// Handle search
 $search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
 $search_results = [];
 if (!empty($search_query)) {
@@ -25,10 +15,8 @@ if (!empty($search_query)) {
     $stmt->close();
 }
 
-// Get product ID
 $product_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Fetch selected product if ID is given
 $selected_product = null;
 if ($product_id > 0) {
     $product_sql = "SELECT * FROM products WHERE id = ?";
@@ -40,13 +28,11 @@ if ($product_id > 0) {
     $product_stmt->close();
 }
 
-// Only show "Product not found" if ID is given, no search, and no product found
 if ($product_id > 0 && empty($search_query) && !$selected_product) {
   echo "<p>Product not found.</p>";
   exit;
 }
 
-// Default: fetch all products if no search and no product selected
 $all_products = [];
 if (empty($search_query) && $product_id === 0) {
     $all_sql = "SELECT * FROM products";
@@ -56,7 +42,6 @@ if (empty($search_query) && $product_id === 0) {
 
 $category = $selected_product['category'] ?? '';
 
-// Function to fetch variants and render a product card
 function renderProductCard($conn, $product) {
     $variant_sql = "SELECT * FROM product_variants WHERE product_id = ?";
     $variant_stmt = $conn->prepare($variant_sql);
@@ -67,23 +52,15 @@ function renderProductCard($conn, $product) {
     $variants = [];
     $colors = [];
     while ($v = $variant_result->fetch_assoc()) {
-      $variants[] = $v;
-      if (!isset($colors[$v['color']])) {
-        $colors[$v['color']] = $v['color_image'];
-      }
+        $variants[] = $v;
+        if (!isset($colors[$v['color']])) {
+            $colors[$v['color']] = $v['color_image'];
+        }
     }
     $variant_stmt->close();
     $variant_json = json_encode($variants, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+    $totalStock = array_sum(array_column($variants, 'stock'));
     ?>
-
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Document</title>
-    </head>
-   
 
     <div class="product">
       <img id="variantImage<?= $product['id'] ?>" src="<?= htmlspecialchars($product['image']) ?>" alt="Product Image">
@@ -106,7 +83,7 @@ function renderProductCard($conn, $product) {
       <div id="sizeSection<?= $product['id'] ?>" style="margin-top:15px;">
         <div id="sizeButtons<?= $product['id'] ?>" class="size-buttons"></div>
         <p><strong>Selected Size:</strong> <span id="selectedSize<?= $product['id'] ?>">None</span></p>
-        <p><strong>Stock:</strong> <span id="selectedStock<?= $product['id'] ?>">0</span></p>
+        <p><strong>Stock:</strong> <span id="selectedStock<?= $product['id'] ?>"><?= $totalStock ?></span></p>
         <p><strong>Price:</strong> ₦<span id="selectedPrice<?= $product['id'] ?>">0.00</span></p>
         <button class="add-to-cart buy-now" onclick="window.location.href='login.php'">
           <i class="fas fa-bolt"></i> Buy Now
@@ -116,7 +93,6 @@ function renderProductCard($conn, $product) {
     <?php
 }
 
-// Fetch related products
 $related_products = [];
 if ($selected_product) {
     $related_sql = "SELECT * FROM products WHERE category = ? AND id != ? LIMIT 4";
@@ -128,7 +104,6 @@ if ($selected_product) {
 }
 ?>
 <!DOCTYPE html>
-
 <html>
 <head>
   <title><?= $selected_product ? htmlspecialchars($selected_product['name']) : 'Search Results' ?> - Product Page</title>
@@ -137,7 +112,6 @@ if ($selected_product) {
 </head>
 <body>
 
-<!-- ✅ Header -->
 <header>
   <div class="logo">
     <img src="logoimg.jpg" alt="Lexxybee Logo">
@@ -162,7 +136,6 @@ if ($selected_product) {
     <?php endif; ?>
   </div>
 
-  <!-- Auto-reset after 5 seconds -->
   <script>
     setTimeout(function() {
       <?php if ($product_id > 0): ?>
@@ -196,13 +169,16 @@ if ($selected_product) {
   <?php endif; ?>
 </div>
 <?php endif; ?>
-<?php include 'footer.php'?>
+
+<?php include 'footer.php' ?>
+
 <script>
 function showSizes(productId, variants, color, image) {
   document.getElementById('variantImage' + productId).src = image;
   let filtered = variants.filter(v => v.color === color);
   let sizeButtons = document.getElementById('sizeButtons' + productId);
   sizeButtons.innerHTML = '';
+
   filtered.forEach(variant => {
     let btn = document.createElement('button');
     btn.textContent = variant.size;

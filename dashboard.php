@@ -161,7 +161,7 @@ $conn->close();
       <nav class="sidebar-nav">
         <a href="#"><i class="fas fa-gauge-high"></i> Dashboard</a>
 
-      <a href="DeleteOrder.php"><i class="fas fa-cart-shopping"></i> Delete Order</a>
+      <a href="DeleteOrder.php"><i class="fas fa-cart-shopping"></i>  Order Payed For / Delete Order</a>
 <a href="orders.php"><i class="fas fa-check-circle"></i> Confirm Payment</a>
  
 <a href="test.php"><i class="fas fa-cloud-upload-alt"></i> Upload Product</a>

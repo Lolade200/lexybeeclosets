@@ -221,7 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <form action="test.php" method="POST" enctype="multipart/form-data">
   <h2>Upload Product</h2>
-
+<h2 >    <a href="index.php">Home</a></h2>
   <label>Category:</label>
   <select name="category" required>
     <option value="Household Items">Household Items</option>

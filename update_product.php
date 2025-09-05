@@ -216,6 +216,7 @@ th {
 <body>
 
 <h2>🔍 Search Products</h2>
+<h2 >    <a href="index.php">Home</a></h2>
 <form method="GET">
   <input type="text" name="search" placeholder="Search by name or ID" value="<?= htmlspecialchars($search_query) ?>">
   <button type="submit">Search</button>
