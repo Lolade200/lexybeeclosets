@@ -108,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <a href="login.php">Login</a>
     <a href="signup.php">Signup</a>
     <a href="about.php">About</a>
+     <a href="index.php">Home</a>
   </nav>
 </header>
 

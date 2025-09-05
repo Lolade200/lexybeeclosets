@@ -235,9 +235,21 @@ $searchTerm = strtolower($searchTerm);
 <script>
 // Restore cart on load
 document.addEventListener('DOMContentLoaded', () => {
-  cart = JSON.parse(localStorage.getItem('cartData')) || [];
+  // Clear cart data on reload
+  localStorage.removeItem('cartData');
+  cart = [];
   updateCartUI();
+
+  // Hide cart panel and clear its contents
+  const cartPanel = document.getElementById('cartPanel');
+  const cartItemsDiv = document.getElementById('cartItems');
+  const cartCount = document.getElementById('cartCount');
+
+  if (cartPanel) cartPanel.classList.remove('active');
+  if (cartItemsDiv) cartItemsDiv.innerHTML = '';
+  if (cartCount) cartCount.textContent = '0';
 });
+
 
 document.querySelectorAll('.color-btn').forEach(btn => {
   btn.addEventListener('click', function () {

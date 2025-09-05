@@ -177,11 +177,15 @@ $conn->close();
   <div class="logo">
     <img src="bee.png" alt="Lexxybee Logo">
     <h2>Lexybeeclosets</h2>
+
   </div>
+    
+
   <nav>
     <?php if ($full_name): ?>
       <span>Welcome, <?php echo htmlspecialchars($full_name); ?>!</span>
     <?php endif; ?>
+     <a href="index.php" style="text-decoration:none; color:white">Home</a>
   </nav>
 </header>
 

@@ -59,9 +59,10 @@ $result = $stmt->get_result();
     <h2>Lexybeeclosets</h2>
 </div>
 <nav>
-    <a href="#">Login</a>
-    <a href="#">Signup</a>
-    <a href="#">About</a>
+    <a href="login.php">Login</a>
+    <a href="signup.php">Signup</a>
+    <a href="about.php">About</a>
+       <a href="index.php.php">About</a>
 </nav>
 </header>
 

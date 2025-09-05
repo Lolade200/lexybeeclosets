@@ -170,6 +170,7 @@ $conn->close();
   <i class="fas fa-edit"></i> Update product
 </a>
 
+<a href="index.php"><i class="fas fa-home"></i> Home</a>
 
      <a href="logout.php" style="
   background-color: #f44336;

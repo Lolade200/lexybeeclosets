@@ -289,8 +289,11 @@ footer i {
   <div class="logo">
     <img src="logoimg.jpg" alt="Lexxybee Logo">
     <h2>LexybeeClosets</h2>
+
+       <a href="index.php">Home</a>
   </div>
   <nav>
+    
     <span style="font-weight: bold; color: white; margin-right: 15px; font-size: 15px;">
       <?= htmlspecialchars($full_name) ?>
     </span>
