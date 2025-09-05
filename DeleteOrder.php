@@ -11,9 +11,13 @@ if (!isset($_SESSION['user_id']) || strtolower($_SESSION['role']) !== 'admin') {
     header("Location: login.php");
     exit;
 }
-
+require_once 'database.php';
 // 📊 Connect to database
-require_once 'database.php'; // This should define $connection
+//$connection = new mysqli("localhost", "root", "", "bbbb");
+$connection = $conn;
+if ($connection->connect_error) {
+    die("Connection failed: " . $connection->connect_error);
+}
 
 $errorMessage = '';
 $orderItems = [];
@@ -68,10 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ✅ Safely close the connection
-if (isset($connection) && $connection instanceof mysqli) {
-    $connection->close();
-}
+$connection->close();
 ?>
 
 <!DOCTYPE html>
