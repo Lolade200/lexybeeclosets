@@ -13,10 +13,10 @@ if (!isset($_SESSION['user_id']) || strtolower($_SESSION['role']) !== 'admin') {
 require_once 'database.php'; // ✅ Fixed missing semicolon
 
 // 📊 Connect to database
-$connection = new mysqli("localhost", "root", "", "bbbb"); // ✅ Added this line to define $connection
-if ($connection->connect_error) {
-    die("Connection failed: " . $connection->connect_error);
-}
+//$connection = new mysqli("localhost", "root", "", "bbbb"); // ✅ Added this line to define $connection
+//if ($connection->connect_error) {
+    //die("Connection failed: " . $connection->connect_error);
+//}
 
 // 🧮 Initialize variables
 $userCount       = 0;
@@ -30,7 +30,7 @@ $growthLabels    = [];
 $growthCounts    = [];
 
 // 📈 Product growth data
-$query = $connection->query("
+$query = $conn->query("
     SELECT DATE(created_at) AS date, COUNT(*) AS count
     FROM products
     GROUP BY DATE(created_at)
@@ -45,35 +45,35 @@ if ($query && $query->num_rows > 0) {
 }
 
 // 👥 Total users
-$userResult = $connection->query("SELECT COUNT(*) AS total FROM users");
+$userResult = $conn->query("SELECT COUNT(*) AS total FROM users");
 if ($userResult && $userResult->num_rows > 0) {
     $row = $userResult->fetch_assoc();
     $userCount = (int)$row['total'];
 }
 
 // 💰 Total money (only from received orders)
-$moneyResult = $connection->query("SELECT SUM(total_price) AS total FROM orders WHERE status = 'Received'");
+$moneyResult = $conn->query("SELECT SUM(total_price) AS total FROM orders WHERE status = 'Received'");
 if ($moneyResult && $moneyResult->num_rows > 0) {
     $row = $moneyResult->fetch_assoc();
     $totalMoney = (float)$row['total'];
 }
 
 // 📦 Total orders
-$orderResult = $connection->query("SELECT COUNT(*) AS total FROM orders");
+$orderResult = $conn->query("SELECT COUNT(*) AS total FROM orders");
 if ($orderResult && $orderResult->num_rows > 0) {
     $row = $orderResult->fetch_assoc();
     $orderCount = (int)$row['total'];
 }
 
 // 🔔 Unnotified orders count
-$res = $connection->query("SELECT COUNT(*) AS c FROM orders WHERE notified = 0");
+$res = $conn->query("SELECT COUNT(*) AS c FROM orders WHERE notified = 0");
 if ($res && $res->num_rows > 0) {
     $row = $res->fetch_assoc();
     $newOrderCount = (int)$row['c'];
 }
 
 // 🧾 Latest unnotified orders (up to 10)
-$productQuery = $connection->query("SELECT id, products FROM orders WHERE notified = 0 ORDER BY created_at DESC LIMIT 10");
+$productQuery = $conn->query("SELECT id, products FROM orders WHERE notified = 0 ORDER BY created_at DESC LIMIT 10");
 if ($productQuery && $productQuery->num_rows > 0) {
     while ($row = $productQuery->fetch_assoc()) {
         $productData = json_decode($row['products'], true);
@@ -82,12 +82,12 @@ if ($productQuery && $productQuery->num_rows > 0) {
         if (is_array($productData)) {
             foreach ($productData as $item) {
                 $productId = intval($item['productId'] ?? 0);
-                $size = $connection->real_escape_string($item['size'] ?? '');
-                $color = $connection->real_escape_string($item['color'] ?? '');
+                $size = $conn->real_escape_string($item['size'] ?? '');
+                $color = $conn->real_escape_string($item['color'] ?? '');
                 $quantity = intval($item['quantity'] ?? 1);
 
                 // 🔍 Lookup price from product_variants
-                $priceResult = $connection->query("
+                $priceResult = $conn->query("
                     SELECT price FROM product_variants 
                     WHERE product_id = $productId AND size = '$size' AND color = '$color' LIMIT 1
                 ");
@@ -108,36 +108,34 @@ if ($productQuery && $productQuery->num_rows > 0) {
         }
 
         // ✅ Mark this order as notified (but do NOT touch stock here)
-        $connection->query("UPDATE orders SET notified = 1 WHERE id = $orderId");
+        $conn->query("UPDATE orders SET notified = 1 WHERE id = $orderId");
     }
 }
 
 // 👤 Unnotified users count
-$res2 = $connection->query("SELECT COUNT(*) AS c FROM users WHERE notified = 0");
+$res2 = $conn->query("SELECT COUNT(*) AS c FROM users WHERE notified = 0");
 if ($res2 && $res2->num_rows > 0) {
     $row = $res2->fetch_assoc();
     $newUserCount = (int)$row['c'];
 }
 
 // 👤 Latest unnotified users (up to 5)
-$newUserQuery = $connection->query("SELECT id, full_name FROM users WHERE notified = 0 ORDER BY created_at DESC LIMIT 5");
+$newUserQuery = $conn->query("SELECT id, full_name FROM users WHERE notified = 0 ORDER BY created_at DESC LIMIT 5");
 if ($newUserQuery && $newUserQuery->num_rows > 0) {
     while ($row = $newUserQuery->fetch_assoc()) {
         $newUsers[] = htmlspecialchars($row['full_name'] ?? 'New user');
 
         // ✅ Mark this user as notified
         $userId = (int)$row['id'];
-        $connection->query("UPDATE users SET notified = 1 WHERE id = $userId");
+        $conn->query("UPDATE users SET notified = 1 WHERE id = $userId");
     }
 }
 
 // 🔴 Helper: show badge if there’s any new item
 $showNotification = ($newOrderCount + $newUserCount) > 0;
 
-$connection->close();
+$conn->close();
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
