@@ -3,13 +3,7 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once 'database.php';
-
-// ✅ Connect to database
-$connection = new mysqli("localhost", "root", "", "bbbb");
-if ($connection->connect_error) {
-    die("Connection failed: " . $connection->connect_error);
-}
+require_once 'database.php'; // Assumes $conn is defined here
 
 // Use session name or default to "Guest"
 $full_name = !empty($_SESSION['full_name']) ? $_SESSION['full_name'] : 'Guest';
@@ -65,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $image     = $item['image'] ?? '';
 
         $price = 0;
-        $priceQuery = $connection->prepare("
+        $priceQuery = $conn->prepare("
             SELECT price FROM product_variants 
             WHERE product_id = ? AND LOWER(size) = ? AND LOWER(color) = ? 
             LIMIT 1
@@ -77,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($result && $result->num_rows > 0) {
                 $price = (float)$result->fetch_assoc()['price'];
             } else {
-                $fallback = $connection->prepare("SELECT price FROM product_variants WHERE product_id = ? LIMIT 1");
+                $fallback = $conn->prepare("SELECT price FROM product_variants WHERE product_id = ? LIMIT 1");
                 if ($fallback) {
                     $fallback->bind_param("i", $productId);
                     $fallback->execute();
@@ -99,10 +93,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $productsJson = json_encode($finalProducts, JSON_UNESCAPED_UNICODE);
 
-    $connection->begin_transaction();
+    $conn->begin_transaction();
 
     // Insert order
-    $stmt = $connection->prepare("
+    $stmt = $conn->prepare("
         INSERT INTO orders 
         (order_id, full_name, phone_number, user_address, delivery_location, total_price, products, receipt_image, status, notified, stock_updated) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Received', 0, 0)
@@ -121,13 +115,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$stmt->execute()) {
         echo "MySQL error: " . $stmt->error;
-        $connection->rollback();
+        $conn->rollback();
         exit;
     }
 
     // ✅ Reduce stock for each item
     foreach ($finalProducts as $product) {
-        $updateStock = $connection->prepare("
+        $updateStock = $conn->prepare("
             UPDATE product_variants 
             SET stock = stock - ? 
             WHERE product_id = ? AND LOWER(size) = ? AND LOWER(color) = ? AND stock >= ?
@@ -140,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $connection->commit();
+    $conn->commit();
     echo "<script>alert('Order placed successfully! Your Order ID is $order_id'); window.location.href='dashboard.php';</script>";
     $stmt->close();
     exit;
@@ -148,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fetch user's past orders
 $orders = [];
-$stmt = $connection->prepare("
+$stmt = $conn->prepare("
     SELECT products, order_id, created_at 
     FROM orders 
     WHERE full_name = ? 
@@ -162,9 +156,8 @@ while ($row = $result->fetch_assoc()) {
     $orders[] = $row;
 }
 $stmt->close();
-$connection->close();
+$conn->close();
 ?>
-
 
 
 <!DOCTYPE html>
