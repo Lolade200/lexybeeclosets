@@ -2,22 +2,22 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-//if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-//$conn = new mysqli("localhost", "root", "", "bbbb");
-  //if ($conn->connect_error) {
-    die("❌ Connection failed: " . $conn->connect_error);
-  }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  // Include database connection
+  require_once 'database.php'; // ✅ Fixed missing semicolon
 
   $upload_dir = "uploads";
   if (!file_exists($upload_dir)) {
     mkdir($upload_dir, 0777, true);
   }
 
+  // Collect and sanitize input
   $name = trim($_POST['product_name'] ?? '');
   $description = trim($_POST['description'] ?? '');
   $availability = $_POST['availability'] ?? '';
   $category = $_POST['category'] ?? '';
 
+  // Validate required fields
   $missing = [];
   if ($name === '') $missing[] = "Product Name";
   if ($description === '') $missing[] = "Description";
@@ -27,7 +27,7 @@ ini_set('display_errors', 1);
     die("❌ Missing required fields: " . implode(", ", $missing));
   }
 
-  // Main image
+  // Handle main image upload
   if (isset($_FILES['main_image']) && $_FILES['main_image']['error'] === UPLOAD_ERR_OK) {
     $main_name = basename($_FILES['main_image']['name']);
     $main_tmp = $_FILES['main_image']['tmp_name'];
@@ -37,30 +37,33 @@ ini_set('display_errors', 1);
     die("❌ No main image uploaded.");
   }
 
-  // Insert product
+  // Insert product into database
   $stmt = $conn->prepare("INSERT INTO products (name, description, image, availability, category, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
   $stmt->bind_param("sssss", $name, $description, $main_path, $availability, $category);
   $stmt->execute();
   $product_id = $stmt->insert_id;
   $stmt->close();
 
-  // Restructure $_FILES['colors']
+  // Helper function to restructure $_FILES array
   function restructureFilesArray($fileArray) {
     $result = [];
     if (!empty($fileArray['name']) && is_array($fileArray['name'])) {
       foreach ($fileArray['name'] as $index => $fields) {
         foreach ($fields as $fieldName => $value) {
-          $result[$index][$fieldName]['name'] = $fileArray['name'][$index][$fieldName];
-          $result[$index][$fieldName]['type'] = $fileArray['type'][$index][$fieldName];
-          $result[$index][$fieldName]['tmp_name'] = $fileArray['tmp_name'][$index][$fieldName];
-          $result[$index][$fieldName]['error'] = $fileArray['error'][$index][$fieldName];
-          $result[$index][$fieldName]['size'] = $fileArray['size'][$index][$fieldName];
+          $result[$index][$fieldName] = [
+            'name' => $fileArray['name'][$index][$fieldName],
+            'type' => $fileArray['type'][$index][$fieldName],
+            'tmp_name' => $fileArray['tmp_name'][$index][$fieldName],
+            'error' => $fileArray['error'][$index][$fieldName],
+            'size' => $fileArray['size'][$index][$fieldName]
+          ];
         }
       }
     }
     return $result;
   }
 
+  // Handle color variants
   $colors = $_POST['colors'] ?? [];
   $restructuredFiles = restructureFilesArray($_FILES['colors'] ?? []);
 
@@ -100,6 +103,7 @@ ini_set('display_errors', 1);
   echo "✅ Product and variants uploaded successfully!";
 }
 ?>
+
 
 
 <!DOCTYPE html>

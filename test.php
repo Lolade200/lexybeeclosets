@@ -1,13 +1,9 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-require_once 'database.php';
-//if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  //$conn = new mysqli("localhost", "root", "", "bbb");
-  //if ($conn->connect_error) {
-   // die("❌ Connection failed: " . $conn->connect_error);
-  //}
+require_once 'database.php'; // ✅ Replaces direct mysqli connection
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $upload_dir = "uploads";
   if (!file_exists($upload_dir)) {
     mkdir($upload_dir, 0777, true);
@@ -27,7 +23,7 @@ require_once 'database.php';
     die("❌ Missing required fields: " . implode(", ", $missing));
   }
 
-  // Main image
+  // 🖼️ Main image
   if (isset($_FILES['main_image']) && $_FILES['main_image']['error'] === UPLOAD_ERR_OK) {
     $main_name = basename($_FILES['main_image']['name']);
     $main_tmp = $_FILES['main_image']['tmp_name'];
@@ -37,30 +33,33 @@ require_once 'database.php';
     die("❌ No main image uploaded.");
   }
 
-  // Insert product
+  // 🧾 Insert product
   $stmt = $conn->prepare("INSERT INTO products (name, description, image, availability, category) VALUES (?, ?, ?, ?, ?)");
   $stmt->bind_param("sssss", $name, $description, $main_path, $availability, $category);
   $stmt->execute();
   $product_id = $stmt->insert_id;
   $stmt->close();
 
-  // Restructure $_FILES['colors']
+  // 🔄 Restructure $_FILES['colors']
   function restructureFilesArray($fileArray) {
     $result = [];
     if (!empty($fileArray['name']) && is_array($fileArray['name'])) {
       foreach ($fileArray['name'] as $index => $fields) {
         foreach ($fields as $fieldName => $value) {
-          $result[$index][$fieldName]['name'] = $fileArray['name'][$index][$fieldName];
-          $result[$index][$fieldName]['type'] = $fileArray['type'][$index][$fieldName];
-          $result[$index][$fieldName]['tmp_name'] = $fileArray['tmp_name'][$index][$fieldName];
-          $result[$index][$fieldName]['error'] = $fileArray['error'][$index][$fieldName];
-          $result[$index][$fieldName]['size'] = $fileArray['size'][$index][$fieldName];
+          $result[$index][$fieldName] = [
+            'name'     => $fileArray['name'][$index][$fieldName],
+            'type'     => $fileArray['type'][$index][$fieldName],
+            'tmp_name' => $fileArray['tmp_name'][$index][$fieldName],
+            'error'    => $fileArray['error'][$index][$fieldName],
+            'size'     => $fileArray['size'][$index][$fieldName]
+          ];
         }
       }
     }
     return $result;
   }
 
+  // 🎨 Handle color variants
   $colors = $_POST['colors'] ?? [];
   $restructuredFiles = restructureFilesArray($_FILES['colors'] ?? []);
 
@@ -77,12 +76,12 @@ require_once 'database.php';
         move_uploaded_file($color_image_tmp, $color_image_path);
       }
 
-      $sizes = $colorData['sizes'] ?? [];
+      $sizes  = $colorData['sizes'] ?? [];
       $prices = $colorData['prices'] ?? [];
       $stocks = $colorData['stocks'] ?? [];
 
       for ($i = 0; $i < count($sizes); $i++) {
-        $size = trim($sizes[$i] ?? '');
+        $size  = trim($sizes[$i] ?? '');
         $price = $prices[$i] ?? '';
         $stock = $stocks[$i] ?? '';
 

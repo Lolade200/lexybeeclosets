@@ -2,12 +2,7 @@
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-require_once 'database.php';
-// 🛠️ Connect to database
-//$connection = new mysqli("localhost", "root", "", "bbbb");
-//if ($connection->connect_error) {
-  //  die("Connection failed: " . $connection->connect_error);
-//}
+require_once 'database.php'; // Assumes $conn is defined here
 
 // 👤 Get user session info
 $full_name = $_SESSION['full_name'] ?? 'Admin';
@@ -26,7 +21,7 @@ $offset = ($page - 1) * $limit;
 
 // 📊 Total filtered orders count
 $totalOrders = 0;
-$totalResult = $connection->query("
+$totalResult = $conn->query("
     SELECT COUNT(*) AS total 
     FROM orders 
     WHERE YEAR(created_at) = $yearFilter AND MONTH(created_at) = $monthFilter
@@ -36,13 +31,13 @@ if ($totalResult) {
     $totalRow = $totalResult->fetch_assoc();
     $totalOrders = (int)$totalRow['total'];
 } else {
-    die("Query Error (count): " . $connection->error);
+    die("Query Error (count): " . $conn->error);
 }
 
 $totalPages = ceil($totalOrders / $limit);
 
 // 📥 Fetch filtered paginated orders
-$query = $connection->query("
+$query = $conn->query("
     SELECT order_id, full_name, user_address, delivery_location, total_price, created_at, receipt_image, phone_number 
     FROM orders 
     WHERE YEAR(created_at) = $yearFilter AND MONTH(created_at) = $monthFilter 
@@ -51,7 +46,7 @@ $query = $connection->query("
 ");
 
 if (!$query) {
-    die("Query Error (orders): " . $connection->error);
+    die("Query Error (orders): " . $conn->error);
 }
 ?>
 
@@ -63,8 +58,8 @@ if (!$query) {
   <title>All Orders</title>
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
 :root {
   --primary: #f0c040;
@@ -286,6 +281,7 @@ footer i {
       }
     }
   </style>
+  </style>
 </head>
 <body>
 
@@ -294,11 +290,6 @@ footer i {
     <img src="logoimg.jpg" alt="Lexxybee Logo">
     <h2>LexybeeClosets</h2>
   </div>
-
-  <button class="hamburger" onclick="toggleMenu()">
-    <i class="fas fa-bars"></i>
-  </button>
-
   <nav>
     <span style="font-weight: bold; color: white; margin-right: 15px; font-size: 15px;">
       <?= htmlspecialchars($full_name) ?>
@@ -351,29 +342,25 @@ footer i {
 <form method="GET" style="text-align: center; margin: 30px 0;">
   <label for="year">Year:</label>
   <select name="year" id="year" style="padding: 6px 10px; margin-right: 10px;">
-    <?php
-    for ($y = $currentYear; $y >= 2020; $y--) {
-        $selected = ($yearFilter == $y) ? 'selected' : '';
-        echo "<option value='$y' $selected>$y</option>";
-    }
-    ?>
+    <?php for ($y = $currentYear; $y >= 2020; $y--): ?>
+      <option value="<?= $y ?>" <?= $yearFilter == $y ? 'selected' : '' ?>><?= $y ?></option>
+    <?php endfor; ?>
   </select>
 
   <label for="month">Month:</label>
   <select name="month" id="month" style="padding: 6px 10px;">
-    <?php
-    for ($m = 1; $m <= 12; $m++) {
-        $monthName = date('F', mktime(0, 0, 0, $m, 10));
-        $selected = ($monthFilter == $m) ? 'selected' : '';
-        echo "<option value='$m' $selected>$monthName</option>";
-    }
+    <?php for ($m = 1; $m <= 12; $m++): 
+      $monthName = date('F', mktime(0, 0, 0, $m, 10));
     ?>
+      <option value="<?= $m ?>" <?= $monthFilter == $m ? 'selected' : '' ?>><?= $monthName ?></option>
+    <?php endfor; ?>
   </select>
 
   <button type="submit" style="padding: 6px 14px; background-color: #1e3a8a; color: white; border: none; border-radius: 6px;">Filter</button>
 </form>
 
 <footer>
+  <!-- Same footer as before -->
   <div class="footer-grid">
     <div>
       <h4><i class="fas fa-university"></i> Account Details</h4>
@@ -389,6 +376,7 @@ footer i {
     <div>
       <h4><i class="fas fa-link"></i> Quick Links</h4>
       <ul style="list-style: none; padding-left: 0;">
+       
         <li><i class="fas fa-info-circle"></i> <a href="about.php" style="color: #eee; text-decoration: none;">About</a></li>
         <li><i class="fas fa-sign-in-alt"></i> <a href="login.php" style="color: #eee; text-decoration: none;">Login</a></li>
         <li><i class="fas fa-user-plus"></i> <a href="signup.php" style="color: #eee; text-decoration: none;">Signup</a></li>
@@ -397,9 +385,14 @@ footer i {
     <div>
       <h4><i class="fas fa-address-book"></i> Contact</h4>
       <ul style="list-style: none; padding-left: 0;">
-        <li><i class="fas fa-map-marker-alt"></i> 2, Lubecker Crescent, Fish pond bus-stop, Agric Ikorodu, Lagos, Nigeria</li>
+        <li><i class="fas fa-map-marker-alt"></i>  2, Lubecker Crescent, Fish pond bus-stop, Agric Ikorodu, Lagos, Nigeria</li>
         <li><i class="fas fa-phone"></i> +23407033581634 / +23408066693304</li>
-        <li><a href="https://www.facebook.com/share/16dJPSAcNC/" target="_blank" style="color: #eee;"><i class="fab fa-facebook"></i> info@lexybeeclosets.com</a></li>
+    <li>
+  <a href="https://www.facebook.com/share/16dJPSAcNC/" target="_blank" style="color: #eee;">
+    <i class="fab fa-facebook"></i> info@lexybeeclosets.com
+  </a>
+</li>
+<li>
   <i class="fab fa-telegram-plane"></i>
   <a href="https://t.me/+1pFD0r4g2k9hNjQ0" target="_blank" style="color: #eee;">
     Telegram
@@ -425,13 +418,3 @@ footer i {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-

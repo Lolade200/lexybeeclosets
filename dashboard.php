@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -9,12 +10,13 @@ if (!isset($_SESSION['user_id']) || strtolower($_SESSION['role']) !== 'admin') {
     exit;
 }
 
+require_once 'database.php'; // ✅ Fixed missing semicolon
+
 // 📊 Connect to database
-//$connection = new mysqli("localhost", "root", "", "bbbb");
-//if ($connection->connect_error) {
-  //  die("Connection failed: " . $connection->connect_error);
-//}
-require_once 'database.php';
+$connection = new mysqli("localhost", "root", "", "bbbb"); // ✅ Added this line to define $connection
+if ($connection->connect_error) {
+    die("Connection failed: " . $connection->connect_error);
+}
 
 // 🧮 Initialize variables
 $userCount       = 0;
@@ -134,6 +136,8 @@ $showNotification = ($newOrderCount + $newUserCount) > 0;
 
 $connection->close();
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
