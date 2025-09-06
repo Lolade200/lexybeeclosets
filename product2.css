@@ -81,45 +81,13 @@ header {
   color: white;
 }
 
-.hamburger {
-  display: none;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: var(--primary);
-  cursor: pointer;
-}
-
-.nav-links {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.nav-links a {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.nav-links.show {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  top: 70px;
-  right: 30px;
-  background: var(--header-bg);
-  padding: 20px;
-  border-radius: 8px;
-  z-index: 1000;
-}
-
 /* Product Catalog */
 .catalog {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 25px;
   margin-top: 30px;
+  padding: 0 30px;
 }
 
 .catalog:first-of-type {
@@ -227,26 +195,37 @@ header {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Pagination */
+/* ✅ Pagination */
 .pagination {
   text-align: center;
   margin: 30px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
 }
 
 .pagination a {
   display: inline-block;
-  padding: 8px 12px;
-  margin: 0 4px;
+  padding: 10px 14px;
   background-color: #eee;
   color: #333;
   text-decoration: none;
-  border-radius: 4px;
-  font-weight: bold;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background 0.3s, color 0.3s;
+}
+
+.pagination a:hover {
+  background-color: var(--primary);
+  color: white;
 }
 
 .pagination a.active {
   background-color: var(--primary);
   color: white;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 /* Footer */
@@ -314,7 +293,7 @@ footer i {
   color: var(--primary);
 }
 
-
+/* Responsive Styles */
 @media (max-width: 768px) {
   header {
     flex-direction: column;
@@ -333,22 +312,6 @@ footer i {
     width: 100%;
     font-size: 15px;
     padding: 14px 16px;
-  }
-
-  .nav-links {
-    display: none;
-  }
-
-  .nav-links.show {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 70px;
-    right: 15px;
-    background: var(--header-bg);
-    padding: 20px;
-    border-radius: 8px;
-    z-index: 1000;
   }
 
   .catalog {
@@ -374,17 +337,12 @@ footer i {
   }
 
   .pagination a {
-    padding: 6px 10px;
-    font-size: 13px;
+    padding: 8px 12px;
+    font-size: 14px;
   }
 }
 
 @media (max-width: 480px) {
-  
-  .responsive-heading {
-    font-size: 1.5rem;
-  }
-
   .product h2 {
     font-size: 16px;
   }
@@ -406,6 +364,11 @@ footer i {
   .add-to-cart,
   .buy-now {
     padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .pagination a {
+    padding: 6px 10px;
     font-size: 13px;
   }
 }
