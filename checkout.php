@@ -135,7 +135,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $conn->commit();
-    echo "<script>alert('Order placed successfully! Your Order ID is $order_id'); window.location.href='dashboard.php';</script>";
+    // ✅ Redirect back to product_display.php instead of dashboard.php
+    echo "<script>
+            alert('Order placed successfully! Your Order ID is $order_id');
+            window.location.href='product_display.php';
+          </script>";
     $stmt->close();
     exit;
 }
@@ -171,16 +175,12 @@ $conn->close();
 </head>
 <body>
 
-<body>
-
 <header>
   <div class="logo">
     <img src="bee.png" alt="Lexxybee Logo">
     <h2>Lexybeeclosets</h2>
-
   </div>
     
-
   <nav>
     <?php if ($full_name): ?>
       <span>Welcome, <?php echo htmlspecialchars($full_name); ?>!</span>
@@ -216,7 +216,7 @@ $conn->close();
         <option value="">Select delivery method</option>
         <option value="Ikeja">Local Pickup</option>
         <option value="Surulere">Within Lagos</option>
-         <option value="Surulere">Outside Lagos</option>
+        <option value="Surulere">Outside Lagos</option>
       </select>
     </div>
 

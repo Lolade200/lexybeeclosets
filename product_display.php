@@ -1,22 +1,11 @@
 <?php
 // Enable error reporting for debugging
-
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 require_once 'database.php';
-// Database connection
-// $servername = "localhost";
-// $username = "root";
-// $password = "";
-// $dbname = "bbbb";
 
-// $conn = new mysqli($servername, $username, $password, $dbname);
-// if ($conn->connect_error) {
-//     die("Connection failed: " . $conn->connect_error);
-// }
-
-// Pagination setup (changed to 8)
-$limit =7;
+// Pagination setup
+$limit = 7;
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;
 $offset = ($page - 1) * $limit;
 
@@ -78,11 +67,7 @@ $searchTerm = strtolower($searchTerm);
 
   <!-- 🎞️ Slider Track -->
   <div class="slider-container">
-    <div class="slider-track" id="sliderTrack">
-      <?php
-      // Optional PHP loop for featured items
-      ?>
-    </div>
+    <div class="slider-track" id="sliderTrack"></div>
   </div>
 
   <!-- 🖼️ Slider Section -->
@@ -117,9 +102,9 @@ $searchTerm = strtolower($searchTerm);
     </div>
   </section>
 
-  <!-- 🛍️ Product Grid --><section class="products" id="productList">
+  <!-- 🛍️ Product Grid -->
+  <section class="products" id="productList">
   <?php
-  // Product query
   $sql = "
     SELECT products.id, products.name, products.description, products.image,
            MIN(product_variants.price) AS price
@@ -140,7 +125,6 @@ $searchTerm = strtolower($searchTerm);
   $stmt->execute();
   $result = $stmt->get_result();
 
-  // Count total products for pagination
   $count_sql = "
     SELECT COUNT(DISTINCT products.id) AS total
     FROM products
@@ -161,7 +145,6 @@ $searchTerm = strtolower($searchTerm);
 
   $total_pages = ($limit > 0) ? ceil($total_products / $limit) : 1;
 
-  // Display products
   if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
       $product_id = $row['id'];
@@ -170,7 +153,6 @@ $searchTerm = strtolower($searchTerm);
       $desc = htmlspecialchars($row["description"]);
       $price = number_format($row["price"], 2);
 
-      // Get available colors
       $color_sql = "SELECT DISTINCT color FROM product_variants WHERE product_id = ?";
       $color_stmt = $conn->prepare($color_sql);
       $color_stmt->bind_param("i", $product_id);
@@ -185,7 +167,7 @@ $searchTerm = strtolower($searchTerm);
       $color_html .= '</div>';
       $color_stmt->close();
 
-      // ✅ Get total stock for the product
+      // 🟢 Check total stock
       $stock_sql = "SELECT SUM(stock) AS total_stock FROM product_variants WHERE product_id = ?";
       $stock_stmt = $conn->prepare($stock_sql);
       $stock_stmt->bind_param("i", $product_id);
@@ -194,8 +176,7 @@ $searchTerm = strtolower($searchTerm);
       $total_stock = $stock_result->fetch_assoc()['total_stock'] ?? 0;
       $stock_stmt->close();
 
-      // ✅ Display actual stock number (even if it's 0)
-      $display_stock = (is_numeric($total_stock)) ? $total_stock : 0;
+      $display_stock = (is_numeric($total_stock) && $total_stock > 0) ? $total_stock : "Out of stock";
 
       echo "<div class='product-card' data-id='$product_id'>
               <img src='$image' alt='$name'>
@@ -222,7 +203,7 @@ $searchTerm = strtolower($searchTerm);
   ?>
 </section>
 
-  <!-- 📄 Pagination -->
+  <!-- 📄 Pagination (Now placed under products) -->
   <div class="pagination-wrapper">
     <div class="pagination">
       <?php
@@ -242,23 +223,19 @@ $searchTerm = strtolower($searchTerm);
 
 
 <script>
-// Restore cart on load
+// Reset cart UI on load
 document.addEventListener('DOMContentLoaded', () => {
-  // Clear cart data on reload
   localStorage.removeItem('cartData');
   cart = [];
   updateCartUI();
 
-  // Hide cart panel and clear its contents
   const cartPanel = document.getElementById('cartPanel');
   const cartItemsDiv = document.getElementById('cartItems');
   const cartCount = document.getElementById('cartCount');
-
   if (cartPanel) cartPanel.classList.remove('active');
   if (cartItemsDiv) cartItemsDiv.innerHTML = '';
   if (cartCount) cartCount.textContent = '0';
 });
-
 
 document.querySelectorAll('.color-btn').forEach(btn => {
   btn.addEventListener('click', function () {
@@ -275,23 +252,26 @@ document.querySelectorAll('.color-btn').forEach(btn => {
         if (data.length > 0) {
           let sizesHtml = '';
           data.forEach(item => {
-            const disabled = item.stock == 0 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : '';
-            sizesHtml += `<button class="size-btn" data-price="${item.price}" data-stock="${item.stock}" data-size="${item.size}" ${disabled}>${item.size}</button>`;
+            const extraStyle = item.stock == 0 ? 'style="opacity:0.5;"' : '';
+            sizesHtml += `<button class="size-btn" data-price="${item.price}" data-stock="${item.stock}" data-size="${item.size}" ${extraStyle}>${item.size}</button>`;
           });
           sizeOptionsDiv.innerHTML = sizesHtml;
 
           card.querySelectorAll('.size-btn').forEach(sizeBtn => {
             sizeBtn.addEventListener('click', function () {
-              if (this.disabled) return;
-
               const price = this.dataset.price;
               const stock = this.dataset.stock;
               const size = this.dataset.size;
 
               card.querySelector('.selected-price').textContent = price;
-              card.querySelector('.selected-stock').textContent = stock;
               card.querySelector('.selected-size').textContent = size;
               card.querySelector('.selected-size-input').value = size;
+
+              if (parseInt(stock) === 0) {
+                card.querySelector('.selected-stock').textContent = "Out of stock";
+              } else {
+                card.querySelector('.selected-stock').textContent = stock;
+              }
             });
           });
         } else {
@@ -303,7 +283,6 @@ document.querySelectorAll('.color-btn').forEach(btn => {
 
 let cart = [];
 
-// ✅ Updated prepareCartData with quantity validation
 function prepareCartData(productId) {
   const card = document.querySelector(`.product-card[data-id='${productId}']`);
   const color = card.querySelector('.selected-color-input').value;
@@ -311,7 +290,8 @@ function prepareCartData(productId) {
   const name = card.querySelector('h4').textContent;
   const image = card.querySelector('img').src;
   const price = card.querySelector('.selected-price').textContent;
-  const stock = parseInt(card.querySelector('.selected-stock').textContent);
+  const stockText = card.querySelector('.selected-stock').textContent;
+  const stock = stockText === "Out of stock" ? 0 : parseInt(stockText);
   const quantityInput = card.querySelector('.quantity-input');
   const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
 
@@ -365,8 +345,7 @@ function removeCartItem(index) {
 }
 
 document.getElementById('cartIcon').addEventListener('click', () => {
-  const panel = document.getElementById('cartPanel');
-  panel.classList.toggle('active');
+  document.getElementById('cartPanel').classList.toggle('active');
 });
 
 document.getElementById('buyNowBtn').addEventListener('click', () => {
@@ -378,22 +357,17 @@ function toggleMenu() {
   menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 }
 
-// ✅ Auto-slide functionality
+// Auto-slide
 let currentSlide = 0;
-
 function autoSlide() {
   const container = document.getElementById('sliderContainer');
   const slides = container.querySelectorAll('.slide');
   const totalSlides = slides.length;
-
   currentSlide = (currentSlide + 1) % totalSlides;
   const offset = -currentSlide * container.offsetWidth;
   container.style.transform = `translateX(${offset}px)`;
 }
-
 setInterval(autoSlide, 4000);
-
 </script>
 </body>
-
 </html>
