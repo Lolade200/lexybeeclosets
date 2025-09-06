@@ -165,6 +165,9 @@ $conn->close();
 <a href="orders.php"><i class="fas fa-check-circle"></i> Confirm Payment</a>
  
 <a href="test.php"><i class="fas fa-cloud-upload-alt"></i> Upload Product</a>
+<a href="outstock.php"><i class="fas fa-exclamation-circle" style="color:red;"></i> Out of Stock</a>
+
+
 <a href="upload_latest_product.php"><i class="fas fa-star"></i> Upload Latest Product</a>
 <a href="update_product.php" class="update-link">
   <i class="fas fa-edit"></i> Update product
