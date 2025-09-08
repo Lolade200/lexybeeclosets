@@ -310,6 +310,19 @@ function prepareCartData(productId) {
     return false;
   }
 
+  // 🚫 Duplicate check
+  const exists = cart.some(item =>
+    item.productId === productId &&
+    item.color === color &&
+    item.size === size
+  );
+
+  if (exists) {
+    alert('This product is already in your cart.');
+    return false;
+  }
+
+  // ✅ Add product only if not duplicate
   cart.push({ productId, name, color, size, image, price, quantity });
   localStorage.setItem('cartData', JSON.stringify(cart));
   updateCartUI();

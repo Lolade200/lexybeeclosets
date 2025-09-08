@@ -24,6 +24,19 @@ while ($row = $result->fetch_assoc()) {
   $all_products[] = $row;
 }
 
+/* 🔴 Handle product deletion */
+if (isset($_GET['delete_id'])) {
+  $delete_id = intval($_GET['delete_id']);
+
+  // Delete variants first
+  $conn->query("DELETE FROM product_variants WHERE product_id = $delete_id");
+
+  // Delete product itself
+  $conn->query("DELETE FROM products WHERE id = $delete_id");
+
+  echo "<p style='color:red;'>🗑️ Product ID $delete_id deleted successfully!</p>";
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $product_id = intval($_POST['product_id']);
   $name = $_POST['product_name'];
@@ -238,7 +251,10 @@ th {
           <em>No image uploaded</em>
         <?php endif; ?>
       </p>
-      <p><a href="?product_id=<?= $p['id'] ?>">✏️ Edit Product</a></p>
+      <p>
+        <a href="?product_id=<?= $p['id'] ?>">✏️ Edit Product</a> | 
+        <a href="?delete_id=<?= $p['id'] ?>" onclick="return confirm('Are you sure you want to delete this product?');" style="color:red;">🗑️ Delete</a>
+      </p>
     </div>
   <?php endforeach; ?>
 </div>
