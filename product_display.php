@@ -23,6 +23,53 @@ $searchTerm = strtolower($searchTerm);
   <!-- Stylesheets -->
   <link rel="stylesheet" href="mainpage.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Categories menu */
+    .categories-menu {
+      position: relative;
+      display: inline-block;
+      margin-left: 15px;
+      cursor: pointer;
+    }
+
+    .categories-menu span {
+      font-weight: bold;
+      color: white;
+    }
+
+    .categories-menu .dropdown {
+      display: none;
+      position: absolute;
+      background: #fff;
+      box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+      z-index: 1000;
+      min-width: 150px;
+    }
+
+    .categories-menu .dropdown a {
+      display: block;
+      padding: 10px;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .categories-menu .dropdown a:hover {
+      background: #f4f4f4;
+    }
+
+    .categories-menu:hover .dropdown {
+      display: block;
+    }
+
+    /* Mobile adjustment */
+    @media (max-width: 768px) {
+      .categories-menu {
+        display: block;
+        margin: 10px 0;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -49,6 +96,37 @@ $searchTerm = strtolower($searchTerm);
     <nav id="mobileMenu" class="nav-links">
       <a href="logout.php">Logout</a>
       <a href="about.php">About</a>
+
+      <!-- 🆕 Categories Dropdown -->
+      <div class="categories-menu">
+        <span>Categories ▾</span>
+        <div class="dropdown">
+      
+
+
+
+
+
+    <a href="Household Items2.php">Household Items</a>
+                  <a href="Bagsmain.php">Bags</a>
+                   <a href="Kiddies2.php">Kiddies</a>
+                   <a href="Footwears2.php">Footwears</a>
+                 <a href="Men's Clothing2.php">Men's Clothing</a>
+                <a href="Women's Clothing2.php">Women's Clothing</a>
+                <a href="watches-glasses2.php">Watches/Glasses</a>
+                <a href="male-female undies2.php">Underwears (Male & Female)</a>
+                  <a href="Turtlenecks2.php">Turtlenecks</a>
+              <a href="nightwears2.php">Night wears</a>
+                  <a href="give away2.php">Giveaway/Discount</a>
+
+
+
+
+
+
+
+        </div>
+      </div>
     </nav>
   </header>
 
