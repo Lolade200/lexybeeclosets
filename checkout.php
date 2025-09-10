@@ -177,7 +177,7 @@ $conn->close();
 
 <header>
   <div class="logo">
-    <img src="bee.png" alt="Lexxybee Logo">
+    <img src="logoimg.jpg" alt="Lexxybee Logo">
     <h2>Lexybeeclosets</h2>
   </div>
     

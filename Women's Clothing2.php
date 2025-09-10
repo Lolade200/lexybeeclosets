@@ -59,8 +59,8 @@ $total_pages = ($limit > 0) ? ceil($total_products / $limit) : 1;
 
     <!-- 📌 Navigation Links -->
     <nav id="mobileMenu" class="nav-links">
-      <a href="index.php">Home</a>
-      <a href="womens_clothing.php">Women's Clothing</a>
+            <a href="product_display.php">Home</a>
+ 
       <a href="about.php">About</a>
       <a href="logout.php">Logout</a>
     </nav>

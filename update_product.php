@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 body {
   font-family: Arial;
   margin: 20px;
-  background: #f4f4f4;
+  background: ghostwhite;
 }
 
 /* Scrollable containers */
