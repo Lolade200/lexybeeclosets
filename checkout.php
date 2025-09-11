@@ -185,7 +185,7 @@ $conn->close();
     <?php if ($full_name): ?>
       <span>Welcome, <?php echo htmlspecialchars($full_name); ?>!</span>
     <?php endif; ?>
-     <a href="index.php" style="text-decoration:none; color:white">Home</a>
+     <a href="product_display.php" style="text-decoration:none; color:white">Home</a>
   </nav>
 </header>
 
@@ -358,7 +358,7 @@ $conn->close();
     </div>
   </div>
   <div class="footer-bottom">
-    © Lexybee Closets. All Rights Reserved. Powered By 3Core Technology Limited
+ © Lexybee Closets. All Rights Reserved. Powered By G & S Technology Limited
   </div>
 </footer>
 

@@ -216,14 +216,7 @@
     <p><strong>Contact:</strong> info@lexybeeclosets.com | +23407033581634</p>
   </div>
 
-  <div class="section">
-    <h3><i class="fas fa-code"></i> Developer</h3>
-    <img src="Samson.png" alt="Developer" />
-    <p><strong>Name:</strong> Adebayo Ololade Samson</p>
-    <p><strong>Role:</strong> Web Developer</p>
-    <p><strong>Skills:</strong> HTML, CSS, JavaScript, PHP, Responsive Design</p>
-    <p><strong>Contact:</strong> sa9362673@gmail.com | Adebayo Samson</p>
-  </div>
+
 
   <div class="section">
     <h3><i class="fas fa-store"></i> About LexyBeeClosets</h3>
@@ -288,7 +281,7 @@
     </div>
   </div>
   <div class="footer-bottom">
-    © Lexybee Closets. All Rights Reserved. Powered By 3Core Technology Limited
+    © Lexybee Closets. All Rights Reserved. Powered By G & S Technology Limited
   </div>
 </footer>
 

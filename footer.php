@@ -56,6 +56,6 @@
     </div>
   </div>
   <div class="footer-bottom">
-    © Lexybee Closets. All Rights Reserved. Powered By 3Core Technology Limited
+    © Lexybee Closets. All Rights Reserved. Powered By G & S Technology Limited
   </div>
 </footer>

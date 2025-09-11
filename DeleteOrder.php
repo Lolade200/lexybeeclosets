@@ -94,7 +94,7 @@ $connection->close();
   <button class="hamburger" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
   <nav>
     
-       <a href="index.php">Home</a>
+       <a href="dashboard.php">Home</a>
     <span style="font-weight: bold; color: white; margin-right: 15px; font-size: 15px;">
       <?= htmlspecialchars($full_name) ?>
     </span>
@@ -173,7 +173,7 @@ $connection->close();
         <li><i class="fas fa-sign-in-alt"></i> <a href="login.php" style="color: #eee; text-decoration: none;">Login</a></li>
        <li>
   <i class="fas fa-home"></i>
-  <a href="index.php" style="color: #eee; text-decoration: none;">Home</a>
+  <a href="dashboard.php" style="color: #eee; text-decoration: none;">Home</a>
 </li>
 
         <li><i class="fas fa-user-plus"></i> <a href="signup.php" style="color: #eee; text-decoration: none;">Signup</a></li>
@@ -209,7 +209,7 @@ $connection->close();
     </div>
   </div>
   <div class="footer-bottom">
-    © Lexybee Closets. All Rights Reserved. Powered By 3Core Technology Limited
+    © Lexybee Closets. All Rights Reserved. Powered By G & S Technology Limited
   </div>
 </footer>
 

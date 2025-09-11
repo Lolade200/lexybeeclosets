@@ -109,7 +109,7 @@ if (!$query) {
   <div class="logo">
     <img src="logoimg.jpg" alt="Lexxybee Logo">
     <h2>LexybeeClosets</h2>
-    <a href="index.php">Home</a>
+    <a href="dashboard.php">Home</a>
   </div>
   <nav>
     <span style="font-weight: bold; color: white; margin-right: 15px; font-size: 15px;">
@@ -215,7 +215,7 @@ if (!$query) {
       </ul>
     </div>
   </div>
-  <div class="footer-bottom">© Lexybee Closets. All Rights Reserved. Powered By 3Core Technology Limited</div>
+  <div class="footer-bottom">© Lexybee Closets. All Rights Reserved. Powered By G & S Technology Limited</div>
 </footer>
 
 </body>
