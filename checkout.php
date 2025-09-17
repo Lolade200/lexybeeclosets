@@ -27,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!is_dir($target_dir)) {
             mkdir($target_dir, 0777, true);
         }
-        $filename     = preg_replace("/[^a-zA-Z0-9\._-]/", "_", basename($_FILES["receipt_image"]["name"]));
-        $receipt_path = $target_dir . time() . "_" . $filename;
+        $filename     = time() . "_" . preg_replace("/[^a-zA-Z0-9\._-]/", "_", basename($_FILES["receipt_image"]["name"]));
+        $receipt_path = $target_dir . $filename;
 
         if (!move_uploaded_file($_FILES["receipt_image"]["tmp_name"], $receipt_path)) {
             echo "<script>alert('Failed to upload receipt. Please try again.'); history.back();</script>";
@@ -42,14 +42,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $order_id        = 'LB-' . rand(10000, 99999);
     $orderedProducts = json_decode($rawProducts, true);
 
-    if (json_last_error() !== JSON_ERROR_NONE || !is_array($orderedProducts)) {
-        echo "<script>alert('Invalid product data.'); history.back();</script>";
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($orderedProducts) || empty($orderedProducts)) {
+        echo "<script>alert('Invalid or empty product data.'); history.back();</script>";
         exit;
     }
 
+    // Start a transaction for data integrity
+    $conn->begin_transaction();
+
     $finalProducts = [];
     $total_price   = 0;
+    $stock_updated_status = 1;
 
+    // Fetch product prices and stock from the database for server-side validation
     foreach ($orderedProducts as $item) {
         $productId = intval($item['productId'] ?? 0);
         $name      = $item['name'] ?? '';
@@ -60,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $price = 0;
         $priceQuery = $conn->prepare("
-            SELECT price FROM product_variants 
+            SELECT price, stock FROM product_variants 
             WHERE product_id = ? AND LOWER(size) = ? AND LOWER(color) = ? 
             LIMIT 1
         ");
@@ -69,15 +74,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $priceQuery->execute();
             $result = $priceQuery->get_result();
             if ($result && $result->num_rows > 0) {
-                $price = (float)$result->fetch_assoc()['price'];
+                $productData = $result->fetch_assoc();
+                if ($quantity > $productData['stock']) {
+                    $conn->rollback();
+                    echo "<script>alert('Not enough stock for " . htmlspecialchars($name) . " in " . htmlspecialchars($color) . " " . htmlspecialchars($size) . ".'); history.back();</script>";
+                    exit;
+                }
+                $price = (float)$productData['price'];
             } else {
-                $fallback = $conn->prepare("SELECT price FROM product_variants WHERE product_id = ? LIMIT 1");
+                $fallback = $conn->prepare("SELECT price, stock FROM product_variants WHERE product_id = ? LIMIT 1");
                 if ($fallback) {
                     $fallback->bind_param("i", $productId);
                     $fallback->execute();
                     $fallbackResult = $fallback->get_result();
                     if ($fallbackResult && $fallbackResult->num_rows > 0) {
-                        $price = (float)$fallbackResult->fetch_assoc()['price'];
+                        $fallbackData = $fallbackResult->fetch_assoc();
+                        if ($quantity > $fallbackData['stock']) {
+                            $conn->rollback();
+                            echo "<script>alert('Not enough stock for " . htmlspecialchars($name) . ".'); history.back();</script>";
+                            exit;
+                        }
+                        $price = (float)$fallbackData['price'];
+                    } else {
+                        $conn->rollback();
+                        echo "<script>alert('Product " . htmlspecialchars($name) . " not found.'); history.back();</script>";
+                        exit;
                     }
                     $fallback->close();
                 }
@@ -85,22 +106,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $priceQuery->close();
         }
 
-        $itemTotal    = $price * $quantity;
+        $itemTotal   = $price * $quantity;
         $total_price += $itemTotal;
-
         $finalProducts[] = compact('productId', 'name', 'color', 'size', 'quantity', 'price', 'image');
     }
 
     $productsJson = json_encode($finalProducts, JSON_UNESCAPED_UNICODE);
 
-    $conn->begin_transaction();
-
-    // Insert order
+    // Insert order with calculated total price
     $stmt = $conn->prepare("
         INSERT INTO orders 
         (order_id, full_name, phone_number, user_address, delivery_location, total_price, products, receipt_image, status, notified, stock_updated) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Received', 0, 0)
     ");
+    
     $stmt->bind_param(
         "ssssisss",
         $order_id,
@@ -108,18 +127,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $phone_number,
         $user_address,
         $delivery_location,
-        $total_price,
+        $total_price, // Server-side calculated price
         $productsJson,
         $receipt_path
     );
 
     if (!$stmt->execute()) {
-        echo "MySQL error: " . $stmt->error;
         $conn->rollback();
+        echo "MySQL error: " . $stmt->error;
         exit;
     }
 
-    // ✅ Reduce stock for each item
+    // Reduce stock after successful order insertion
     foreach ($finalProducts as $product) {
         $updateStock = $conn->prepare("
             UPDATE product_variants 
@@ -128,18 +147,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         if ($updateStock) {
             $qty = $product['quantity'];
-            $updateStock->bind_param("iissi", $qty, $product['productId'], $product['size'], $product['color'], $qty);
+            $size = strtolower($product['size']);
+            $color = strtolower($product['color']);
+            $updateStock->bind_param("iissi", $qty, $product['productId'], $size, $color, $qty);
             $updateStock->execute();
+            if ($updateStock->affected_rows === 0) {
+                 $stock_updated_status = 0;
+            }
             $updateStock->close();
         }
     }
+    
+    // Update the stock_updated flag if all updates were successful
+    if ($stock_updated_status) {
+        $updateFlag = $conn->prepare("UPDATE orders SET stock_updated = 1 WHERE order_id = ?");
+        $updateFlag->bind_param("s", $order_id);
+        $updateFlag->execute();
+        $updateFlag->close();
+    }
 
     $conn->commit();
-    // ✅ Redirect back to product_display.php instead of dashboard.php
     echo "<script>
-            alert('Order placed successfully! Your Order ID is $order_id');
-            window.location.href='product_display.php';
-          </script>";
+        alert('Order placed successfully! Your Order ID is $order_id');
+        window.location.href='product_display.php';
+      </script>";
     $stmt->close();
     exit;
 }
@@ -163,7 +194,6 @@ $stmt->close();
 $conn->close();
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -185,7 +215,7 @@ $conn->close();
     <?php if ($full_name): ?>
       <span>Welcome, <?php echo htmlspecialchars($full_name); ?>!</span>
     <?php endif; ?>
-     <a href="product_display.php" style="text-decoration:none; color:white">Home</a>
+      <a href="product_display.php" style="text-decoration:none; color:white">Home</a>
   </nav>
 </header>
 
@@ -193,34 +223,29 @@ $conn->close();
 <form id="checkout-form" method="POST" action="checkout.php" enctype="multipart/form-data">
   <div class="checkout-container">
 
-    <!-- Dynamic Selected Products -->
     <div id="checkout-products"></div>
     <h3 id="checkout-total">Total Price: ₦0</h3>
 
-    <!-- User Address Input -->
     <div class="form-group">
       <label for="user-address">Location:</label>
       <input type="text" id="user-address" name="user_address" placeholder="Enter your address" required>
     </div>
 
-    <!-- Phone Number Input -->
     <div class="form-group">
       <label for="phone-number">Phone Number:</label>
       <input type="tel" id="phone-number" name="phone_number" placeholder="Enter your phone number" required>
     </div>
 
-    <!-- Delivery Location Selector -->
     <div class="form-group">
       <label for="delivery-location-select">Delivery Method:</label>
       <select id="delivery-location-select" name="delivery_location" required>
         <option value="">Select delivery method</option>
-        <option value="Ikeja">Local Pickup</option>
-        <option value="Surulere">Within Lagos</option>
-        <option value="Surulere">Outside Lagos</option>
+        <option value="Local Pickup">Local Pickup</option>
+        <option value="Within Lagos">Within Lagos</option>
+        <option value="Outside Lagos">Outside Lagos</option>
       </select>
     </div>
 
-    <!-- Delivery Policy -->
     <h3>Delivery Policy</h3>
     <table class="delivery-policy">
       <thead>
@@ -249,7 +274,6 @@ $conn->close();
       </tbody>
     </table>
 
-    <!-- Account Payment Info -->
     <div class="payment-info">
       <h4>Account Payment Info</h4>
       <p><strong>Bank:</strong> Opay</p>
@@ -261,24 +285,17 @@ $conn->close();
       <p><strong>Account Name:</strong> Adedulu Bolanle Damilola</p>
     </div>
 
-    <!-- Receipt Image Upload -->
     <label for="receipt-upload">Upload Receipt Image:</label>
     <input type="file" id="receipt-upload" name="receipt_image" accept="image/*" required>
 
-    <!-- Hidden Inputs for Cart Data -->
     <input type="hidden" name="products" id="products-data">
-    <input type="hidden" name="total_price" id="total-price-data">
-
-    <!-- Buy All Button -->
+    
     <button type="submit" class="buy-all-btn">
       <i class="fas fa-shopping-bag"></i> Buy All
     </button>
-
   </div>
 </form>
 
-
-<!-- Past Orders -->
 <?php if (!empty($orders)): ?>
   <div class="purchase-history">
     <h3><i class="fas fa-box"></i> Products You've Bought</h3>
@@ -308,14 +325,13 @@ $conn->close();
   <p style="margin: 20px 0; color: #555;">You haven’t bought anything yet.</p>
 <?php endif; ?>
 
-<!-- Footer -->
 <footer>
   <div class="footer-grid">
     <div>
       <h4><i class="fas fa-university"></i> Account Details</h4>
       <p><strong>Bank:</strong> Opay<br>
-         <strong>Account No.:</strong> 7033581634<br>
-         <strong>Account Name:</strong> Adedulu Bolanle Damilola</p>
+          <strong>Account No.:</strong> 7033581634<br>
+          <strong>Account Name:</strong> Adedulu Bolanle Damilola</p>
       <p class="footer-note">
         <i class="fas fa-exclamation-triangle"></i> Any goods left unpicked is at owner's risk<br>
         <i class="fas fa-ban"></i> NO REFUNDS after payment<br>
@@ -358,53 +374,67 @@ $conn->close();
     </div>
   </div>
   <div class="footer-bottom">
- © Lexybee Closets. All Rights Reserved. Powered By G & S Technology Limited
+  © Lexybee Closets. All Rights Reserved. Powered By G & S Technology Limited
   </div>
 </footer>
 
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const cartData = JSON.parse(localStorage.getItem('cartData')) || [];
-  const container = document.getElementById('checkout-products');
-  const totalPriceEl = document.getElementById('checkout-total');
+    const cartData = JSON.parse(localStorage.getItem('cartData')) || [];
+    const container = document.getElementById('checkout-products');
+    const totalPriceEl = document.getElementById('checkout-total');
 
-  if (cartData.length === 0) {
-    container.innerHTML = '<p style="text-align:center;">Your cart is empty.</p>';
-    totalPriceEl.textContent = 'Total Price: ₦0';
-    return;
-  }
+    if (cartData.length === 0) {
+        container.innerHTML = '<p style="text-align:center;">Your cart is empty.</p>';
+        totalPriceEl.textContent = 'Total Price: ₦0';
+        return;
+    }
 
-  let total = 0;
-  cartData.forEach(item => {
-    const price = parseFloat(item.price.replace(/,/g, ''));
-    total += price;
+    let total = 0;
+    const productsToSend = [];
 
-    const div = document.createElement('div');
-    div.className = 'checkout-item';
-    div.innerHTML = `
-      <img src="${item.image}" alt="${item.name}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;">
-      <div class="checkout-details">
-        <p><strong>${item.name}</strong></p>
-        <p>Color: ${item.color}</p>
-        <p>Size: ${item.size}</p>
-        <p>Price: ₦${item.price}</p>
-      </div>
-    `;
-    container.appendChild(div);
-  });
+    cartData.forEach(item => {
+        const price = parseFloat(item.price.replace(/,/g, ''));
+        const quantity = parseInt(item.quantity, 10) || 1; // Ensure quantity is a number
+        
+        if (!isNaN(price)) {
+            total += price * quantity;
+        }
 
-  totalPriceEl.textContent = `Total Price: ₦${total.toLocaleString()}`;
-  document.getElementById('products-data').value = JSON.stringify(cartData);
-  document.getElementById('total-price-data').value = total.toFixed(2);
+        productsToSend.push({
+            productId: item.productId,
+            name: item.name,
+            color: item.color,
+            size: item.size,
+            quantity: quantity,
+            image: item.image
+        });
+
+        const div = document.createElement('div');
+        div.className = 'checkout-item';
+        div.innerHTML = `
+            <img src="${item.image}" alt="${item.name}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;">
+            <div class="checkout-details">
+                <p><strong>${item.name}</strong></p>
+                <p>Color: ${item.color}</p>
+                <p>Size: ${item.size}</p>
+                <p>Quantity: ${quantity}</p>
+                <p>Price: ₦${price.toLocaleString()}</p>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+
+    totalPriceEl.textContent = `Total Price: ₦${total.toLocaleString()}`;
+    document.getElementById('products-data').value = JSON.stringify(productsToSend);
 });
 
 document.getElementById('checkout-form').addEventListener('submit', function (e) {
-  const cartData = JSON.parse(localStorage.getItem('cartData')) || [];
-  if (cartData.length === 0) {
-    alert("Your cart is empty. Please add products before checking out.");
-    e.preventDefault();
-  }
+    const cartData = JSON.parse(localStorage.getItem('cartData')) || [];
+    if (cartData.length === 0) {
+        alert("Your cart is empty. Please add products before checking out.");
+        e.preventDefault();
+    }
 });
 </script>
 
